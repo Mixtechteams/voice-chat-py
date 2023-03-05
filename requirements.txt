@@ -1,0 +1,6 @@
+vosk 
+pyaudio 
+transformers
+torch 
+ffmpeg
+twisted
