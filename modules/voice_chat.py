@@ -9,13 +9,15 @@ from twisted.internet import reactor
 FRAME_RATE = 44100
 BUFFER = 4096
 CHANNELS=1
-model = Model("model")
+model: Model | None = None
 
 class VoiceChat(DatagramProtocol):
     on_message_received: Callable[[str, str], None]
     mic_enabled: bool = False
 
     def __init__(self, ip: str, port: int, use_recognizer: bool):
+        if use_recognizer:
+            global model; model = model or Model("model")
         hostname=socket.gethostname()   
         IPAddr=socket.gethostbyname(hostname)   
         self.ip = ip
