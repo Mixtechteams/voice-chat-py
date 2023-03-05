@@ -13,6 +13,7 @@ model = Model("model")
 
 class VoiceChat(DatagramProtocol):
     on_message_received: Callable[[str, str], None]
+    mic_enabled: bool = False
 
     def __init__(self, ip: str, port: int):
         hostname=socket.gethostname()   
@@ -21,6 +22,8 @@ class VoiceChat(DatagramProtocol):
         self.port = port
         self.my_ip = IPAddr
 
+    def set_mic_enabled(self, mic_enabled: bool):
+        self.mic_enabled = mic_enabled
 
     def startProtocol(self):
         py_audio = pyaudio.PyAudio()
@@ -50,6 +53,9 @@ class VoiceChat(DatagramProtocol):
     # передача голоса по ип либо всем мультикаст
     def record(self):
         while True:
+            if not self.mic_enabled:
+                continue
+
             data = self.input_stream.read(self.buffer,exception_on_overflow=False)
             self.transport.write(data, self.another_client)
             
