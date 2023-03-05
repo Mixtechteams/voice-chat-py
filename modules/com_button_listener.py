@@ -1,7 +1,6 @@
 import binascii
 
 from typing import Callable
-
 from serial import Serial, SerialException
 
 class ComButtonListener:
@@ -22,7 +21,7 @@ class ComButtonListener:
         if not self.serial.is_open:
             raise (RuntimeError('Error: could not open port'))
 
-    async def update(self):
+    def update(self):
         total_read = 0
         attempts = 10
 
