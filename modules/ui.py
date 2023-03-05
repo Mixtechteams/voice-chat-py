@@ -1,7 +1,9 @@
 import tkinter as tk
 
 mic_enable_text = "Включить микрофон"
+mic_enable_color = "#c42b1c"
 mic_disable_text = "Выключить микрофон"
+mic_disable_color = "#81ea00"
 
 class UI:
     conversation = []
@@ -20,7 +22,8 @@ class UI:
     def handle_mic_button_click(self, button: tk.Button):
         self.mic_enabled = not self.mic_enabled
         text = mic_disable_text if self.mic_enabled else mic_enable_text
-        button.config(text=text)
+        color = mic_disable_color if self.mic_enabled else mic_enable_color
+        button.config(text=text, bg=color)
         self.on_mic_state_changed(self.mic_enabled)
 
     def get_log(self):
@@ -54,19 +57,19 @@ class UI:
         button_frame = tk.Frame(window)
         button_frame.pack(side=tk.BOTTOM)
 
-        # Create a button
-        button1 = tk.Button(button_frame, 
-                            command=lambda: self.handle_mic_button_click(button1),
-                            text=mic_enable_text, bd=1, relief="solid", highlightthickness=0, highlightbackground="#767D89", padx=10, pady=5, borderwidth=0, bg="#FFFFFF", fg="#000000")
-        button1.config(highlightcolor="#767D89")
-        button1.pack(side=tk.LEFT, padx=10, pady=10)
+        # Create a mic button
+        mic_button = tk.Button(button_frame, 
+                            command=lambda: self.handle_mic_button_click(mic_button),
+                            text=mic_enable_text, bd=1, relief="solid", highlightthickness=0, highlightbackground="#767D89", padx=10, pady=5, borderwidth=0, bg=mic_enable_color, fg="#000000")
+        mic_button.config(highlightcolor="#767D89")
+        mic_button.pack(side=tk.LEFT, padx=10, pady=10)
 
-        # Create a button
-        button2 = tk.Button(button_frame, text="Распечатать запись переговоров", 
+        # Create a print button
+        print_button = tk.Button(button_frame, text="Распечатать запись переговоров", 
                             command=self.on_print_click,
                             bd=1, relief="solid", highlightthickness=0, highlightbackground="#767D89", padx=10, pady=5, borderwidth=0, bg="#FFFFFF", fg="#000000")
-        button2.config(highlightcolor="#767D89")
-        button2.pack(side=tk.RIGHT, padx=10, pady=10)
+        print_button.config(highlightcolor="#767D89")
+        print_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
     def render(self):
             # Run the window

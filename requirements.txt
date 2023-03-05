@@ -5,3 +5,5 @@ torch
 ffmpeg
 twisted
 overlay
+pypiwin32
+pyserial

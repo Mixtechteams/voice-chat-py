@@ -15,11 +15,12 @@ class VoiceChat(DatagramProtocol):
     on_message_received: Callable[[str, str], None]
     mic_enabled: bool = False
 
-    def __init__(self, ip: str, port: int):
+    def __init__(self, ip: str, port: int, use_recognizer: bool):
         hostname=socket.gethostname()   
         IPAddr=socket.gethostbyname(hostname)   
         self.ip = ip
         self.port = port
+        self.use_recognizer = use_recognizer
         self.my_ip = IPAddr
 
     def set_mic_enabled(self, mic_enabled: bool):
@@ -31,10 +32,11 @@ class VoiceChat(DatagramProtocol):
         
         self.another_client = self.ip, self.port
         
-        self.rec = KaldiRecognizer(model, FRAME_RATE)
-        self.rec.SetWords(True)
-        self.outrec = KaldiRecognizer(model, FRAME_RATE)
-        self.outrec.SetWords(True)
+        if self.use_recognizer:
+            self.rec = KaldiRecognizer(model, FRAME_RATE)
+            self.rec.SetWords(True)
+            self.outrec = KaldiRecognizer(model, FRAME_RATE)
+            self.outrec.SetWords(True)
         
         # группа для мультикаст передачи, так же остается передача напрямую по ip
         self.transport.joinGroup(self.ip)
@@ -59,14 +61,15 @@ class VoiceChat(DatagramProtocol):
             data = self.input_stream.read(self.buffer,exception_on_overflow=False)
             self.transport.write(data, self.another_client)
             
-            self.outrec.AcceptWaveform(data)
+            if self.use_recognizer:
+                self.outrec.AcceptWaveform(data)
 
     # прием голоса, преобразование в текст и логирование, воспроизведение если передача не с этого клиента
     def datagramReceived(self, datagram, addr):
         if addr[0]!=self.my_ip:
             self.output_stream.write(datagram)
             
-        if self.rec.AcceptWaveform(datagram):
+        if self.use_recognizer and self.rec.AcceptWaveform(datagram):
             res = self.rec.Result()
             message: str = json.loads(res)['text']
 
