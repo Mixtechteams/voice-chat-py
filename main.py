@@ -1,8 +1,8 @@
-from helpers.udp_message_sender import UdpMessageSender;
+from modules.udp_message_sender import UdpMessageSender;
 import argparse;
 from twisted.internet import reactor
 
-from voice_chat import VoiceChat
+from modules.voice_chat import VoiceChat
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'Переговорное устройство')
