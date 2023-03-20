@@ -1,3 +1,4 @@
+import asyncio
 import socket
 from typing import Callable
 from vosk import Model, KaldiRecognizer
@@ -18,12 +19,10 @@ class VoiceChat(DatagramProtocol):
     def __init__(self, ip: str, port: int, use_recognizer: bool):
         if use_recognizer:
             global model; model = model or Model("model")
-        hostname=socket.gethostname()   
-        IPAddr=socket.gethostbyname(hostname)   
         self.ip = ip
         self.port = port
         self.use_recognizer = use_recognizer
-        self.my_ip = IPAddr
+        self.my_ips = [i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None)]
 
     def set_mic_enabled(self, mic_enabled: bool):
         self.mic_enabled = mic_enabled
@@ -64,24 +63,25 @@ class VoiceChat(DatagramProtocol):
             self.transport.write(data, self.another_client)
             
             if self.use_recognizer:
-                self.outrec.AcceptWaveform(data)
+                text = self.recognize_text(self.outrec, data)
+                if text != None:
+                    self.on_message_received(self.my_ips[-1], text)
 
     # прием голоса, преобразование в текст и логирование, воспроизведение если передача не с этого клиента
     def datagramReceived(self, datagram, addr):
-        if addr[0]!=self.my_ip:
-            self.output_stream.write(datagram)
+        if addr[0] in self.my_ips:
+            return
+        
+        self.output_stream.write(datagram)
+        text = self.recognize_text(self.rec, datagram)
+        if text != None:
+            self.on_message_received(addr, text)
             
-        if self.use_recognizer and self.rec.AcceptWaveform(datagram):
-            res = self.rec.Result()
+    def recognize_text(self, recognizer, data):
+        if self.use_recognizer and recognizer.AcceptWaveform(data):
+            res = recognizer.Result()
             message: str = json.loads(res)['text']
-
+    
             if len(message) > 0 and self.on_message_received:
-                self.on_message_received(addr, message)
-
-def get_my_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-    s.close()
-    return ip
-
+                return message
+        return None
