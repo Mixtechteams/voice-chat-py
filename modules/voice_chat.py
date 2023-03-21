@@ -1,4 +1,3 @@
-import asyncio
 import socket
 from typing import Callable
 from vosk import Model, KaldiRecognizer
@@ -71,11 +70,11 @@ class VoiceChat(DatagramProtocol):
     def datagramReceived(self, datagram, addr):
         if addr[0] in self.my_ips:
             return
-        
         self.output_stream.write(datagram)
-        text = self.recognize_text(self.rec, datagram)
-        if text != None:
-            self.on_message_received(addr, text)
+        if self.use_recognizer:
+            text = self.recognize_text(self.rec, datagram)
+            if text != None:
+                self.on_message_received(addr[0], text)
             
     def recognize_text(self, recognizer, data):
         if self.use_recognizer and recognizer.AcceptWaveform(data):

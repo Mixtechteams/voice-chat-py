@@ -17,16 +17,26 @@ class ComButtonListener:
 
         if not self.serial.is_open:
             raise (RuntimeError('Error: could not open port'))
-
-
-    def update(self):
-        buffer = bytearray(3)
+            
         message = bytearray([0xa1, 0, 0x86])  # 100
 
         # Команда старта
         self.serial.write(message)
 
-        buffer = self.serial.read(3)
+
+
+    def update(self):
+        buffer = bytearray(3)
+        
+        if self.serial.inWaiting() < 3:
+            return
+
+        buffer = self.serial.read(self.serial.inWaiting())
+        index = buffer.rfind(0xb1)
+        if index + 1 >= len(buffer):
+            index = index - 2
+        else:
+            index = index + 1
 
         if self.on_button_state_change:
-            self.on_button_state_change(buffer[1] & 0b10000000 > 0)
+            self.on_button_state_change(buffer[index] & 0b10000000 > 0)

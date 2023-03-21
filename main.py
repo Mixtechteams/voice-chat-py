@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import signal
 from modules.com_button_listener import ComButtonListener
 from modules.print_log import print_log
 import argparse;
@@ -10,6 +11,8 @@ from queue import Queue
 from modules.voice_chat import VoiceChat
 
 if __name__ == '__main__':
+    loops = []
+
     parser = argparse.ArgumentParser(prog = 'Переговорное устройство')
     parser.add_argument('--port', type=int)
     parser.add_argument('--address')
@@ -50,10 +53,18 @@ if __name__ == '__main__':
                 ui.add_message(*item)
             except:
                 pass
-        task.LoopingCall(queue_h).start(0.1)
+        
+        ui_update_loop = task.LoopingCall(queue_h)
+        ui_update_loop.start(0.1)
+        loops.append(ui_update_loop)
     else:
         button_listener = ComButtonListener(com_port, lambda enabled: voice_chat.set_mic_enabled(enabled))
-        task.LoopingCall(button_listener.update).start(0.1)
+        com_loop = task.LoopingCall(button_listener.update)
+        com_loop.start(0.1)
+        loops.append(com_loop)
+
+    signal.signal(signal.SIGINT, lambda a, _: os._exit(a))
 
     reactor.listenMulticast(args.port, voice_chat, listenMultiple=True)
     reactor.run()
+
