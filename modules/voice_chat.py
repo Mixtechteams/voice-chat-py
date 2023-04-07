@@ -73,9 +73,10 @@ class VoiceChat(DatagramProtocol):
             return
         
         self.output_stream.write(datagram)
-        text = self.recognize_text(self.rec, datagram)
-        if text != None:
-            self.on_message_received(addr, text)
+        if self.use_recognizer:
+            text = self.recognize_text(self.rec, datagram)
+            if text != None:
+                self.on_message_received(addr, text)
             
     def recognize_text(self, recognizer, data):
         if self.use_recognizer and recognizer.AcceptWaveform(data):
